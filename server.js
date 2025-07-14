@@ -24,7 +24,7 @@ const paymentRoutes = require('./api/routes/payments');
 
 // Import middleware
 const authMiddleware = require('./api/middleware/auth');
-const errorHandler = require('./api/middleware/errorHandler');
+const { errorHandler } = require('./api/middleware/errorHandler');
 
 // Import database connection
 const { supabase } = require('./api/config/database');
@@ -188,7 +188,7 @@ app.use('/api/memberships', membershipRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/payments', paymentRoutes);
-app.use('/api/admin', authMiddleware.requireAdmin, adminRoutes);
+app.use('/api/admin', authMiddleware.verifyToken, authMiddleware.requireAdmin, adminRoutes);
 
 // =============================================================================
 // MAIN WEBSITE ROUTES

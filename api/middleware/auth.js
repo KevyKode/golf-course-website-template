@@ -20,8 +20,8 @@ const verifyToken = async (req, res, next) => {
       return res.status(401).json({ error: 'Invalid or expired token' });
     }
     
-    req.user = user;
-    next();
+    req.user = user; // Attach user to request object
+    next(); // Proceed to the next middleware/route handler
   } catch (error) {
     console.error('Token verification error:', error);
     res.status(401).json({ error: 'Invalid token' });
@@ -38,11 +38,11 @@ const optionalAuth = async (req, res, next) => {
       const { data: { user }, error } = await supabase.auth.getUser(token);
       
       if (!error && user) {
-        req.user = user;
+        req.user = user; // Attach user to request object
       }
     }
     
-    next();
+    next(); // Always proceed, even if no token or invalid token
   } catch (error) {
     // Continue without authentication
     next();
@@ -51,29 +51,27 @@ const optionalAuth = async (req, res, next) => {
 
 // Require admin privileges
 const requireAdmin = async (req, res, next) => {
-  try {
-    await verifyToken(req, res, () => {});
-    
-    if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-    
-    // Check if user has admin role
-    const { data: userData, error } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', req.user.id)
-      .single();
-    
-    if (error || !userData || userData.role !== 'admin') {
-      return res.status(403).json({ error: 'Admin privileges required' });
-    }
-    
-    next();
-  } catch (error) {
-    console.error('Admin verification error:', error);
-    res.status(500).json({ error: 'Authentication error' });
+  // At this point, verifyToken should have already run and populated req.user
+  // If verifyToken failed (e.g., invalid token), it would have already sent a response
+  // and not called next(). So, if we reach here, req.user should be populated.
+
+  // We still need a check for req.user in case verifyToken was optional or some other flow
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required (user not found after token verification)' });
   }
+
+  // Check if user has admin role
+  const { data: userData, error } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', req.user.id)
+    .single();
+
+  if (error || !userData || userData.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin privileges required' });
+  }
+
+  next(); // User is admin, proceed
 };
 
 // Rate limiting for sensitive operations

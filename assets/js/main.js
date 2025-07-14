@@ -40,6 +40,11 @@ function initializeNavigation() {
     
     // Smooth scrolling for navigation links
     navLinks.forEach(link => {
+        // Exclude the login/logout button from smooth scrolling
+        if (link.id === 'loginLogoutBtn') {
+            return; 
+        }
+
         link.addEventListener('click', function(e) {
             e.preventDefault();
             const targetId = this.getAttribute('href');

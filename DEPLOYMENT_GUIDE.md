@@ -32,94 +32,82 @@ Full control with services like DigitalOcean, Linode, or AWS EC2.
 - [ ] Create email templates
 - [ ] Test email delivery
 
-## 🛠️ Railway Deployment (Step-by-Step)
+## 🛠️ Deployment Instructions
 
-### Step 1: Prepare Repository
+This template consists of two main parts:
+1.  **Frontend:** HTML, CSS, and client-side JavaScript.
+2.  **Backend:** Node.js server with API routes and database interaction.
+
+For the template to work fully, **both the frontend and backend must be deployed.**
+
+### Option A: Deploying the Entire Project to Railway (Recommended for simplicity)
+This is the easiest way to deploy both your frontend and backend together. Railway will run your `server.js` which serves both your static files and handles API requests.
+
+1.  **Prepare Repository:**
+    *   Ensure all your code changes are committed and pushed to your GitHub repository.
+2.  **Connect to Railway:**
+    *   Go to [railway.app](https://railway.app)
+    *   Sign up/login with GitHub.
+    *   Click "New Project" and select "Deploy from GitHub repo".
+    *   Choose your repository.
+3.  **Configure Environment Variables:**
+    *   In your Railway project dashboard, go to the "Variables" tab.
+    *   Add all the environment variables from your `.env` file (Supabase keys, Stripe keys, SendGrid keys, JWT_SECRET, SESSION_SECRET, etc.).
+    *   **Crucially, ensure `PRODUCTION_URL` is set to your Railway-provided domain (e.g., `https://your-project-name.up.railway.app`).**
+4.  **Deploy:**
+    *   Railway will automatically detect your `start` script (`node server.js`) and deploy your application.
+    *   Your entire application (frontend and backend) will be accessible at the Railway-provided URL (e.g., `your-project-name.up.railway.app`).
+5.  **Update `API_BASE_URL` (Crucial!):**
+    *   Once your backend is deployed on Railway, you **MUST** update the `API_BASE_URL` in your frontend JavaScript (`assets/js/main.js`) to point to your deployed Railway backend URL.
+    *   Open `assets/js/main.js` and change:
+        ```javascript
+        const API_BASE_URL = window.location.origin.includes('localhost') 
+            ? 'http://localhost:3000/api' 
+            : `${window.location.origin}/api`;
+        ```
+        to:
+        ```javascript
+        const API_BASE_URL = "https://your-railway-backend-url.up.railway.app/api"; 
+        // Replace with your actual Railway URL
+        ```
+    *   Commit and push this change to your repository. This will trigger a new deployment on Railway.
+
+### Option B: Separate Deployments (Frontend on Cloudflare Pages, Backend on Railway/Other)
+This option gives you more control but requires managing two separate deployments.
+
+1.  **Deploy Backend (e.g., to Railway):**
+    *   Follow steps 1-4 from "Option A: Deploying the Entire Project to Railway" above to deploy your backend.
+    *   Note down your deployed Railway backend URL (e.g., `https://your-backend-project.up.railway.app`). This will be your `API_BASE_URL`.
+2.  **Deploy Frontend to Cloudflare Pages:**
+    *   Go to [pages.cloudflare.com](https://pages.cloudflare.com)
+    *   Connect your GitHub repository.
+    *   **Build Settings:**
+        *   **Build command:** `npm run build`
+        *   **Publish directory:** `dist`
+    *   Deploy your frontend.
+3.  **Update `API_BASE_URL` (Crucial!):**
+    *   Open `assets/js/main.js` and change:
+        ```javascript
+        const API_BASE_URL = window.location.origin.includes('localhost') 
+            ? 'http://localhost:3000/api' 
+            : `${window.location.origin}/api`;
+        ```
+        to:
+        ```javascript
+        const API_BASE_URL = "https://your-backend-project.up.railway.app/api"; 
+        // Replace with your actual deployed backend URL (e.g., from Railway)
+        ```
+    *   Commit and push this change to your repository. This will trigger a new deployment on Cloudflare Pages.
+
+### Manual Deployment (for advanced users)
 ```bash
-# Clone or fork the repository
-git clone <your-repo-url>
-cd your-golf-course-template
+# Build the project (creates the 'dist' directory)
+npm run build
 
-# Ensure all files are committed
-git add .
-git commit -m "Ready for deployment"
-git push origin main
+# To run the production server locally (for testing before deployment)
+npm start
+# This will serve the 'dist' folder and run the API.
 ```
-
-### Step 2: Create Railway Project
-1. Go to [railway.app](https://railway.app)
-2. Sign up/login with GitHub
-3. Click "New Project"
-4. Select "Deploy from GitHub repo"
-5. Choose your repository
-
-### Step 3: Configure Environment Variables
-In Railway dashboard, go to Variables tab and add:
-
-```env
-# Database
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-
-# Payments
-STRIPE_PUBLISHABLE_KEY=pk_live_your_key
-STRIPE_SECRET_KEY=sk_live_your_key
-STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
-
-# Email
-SENDGRID_API_KEY=your_sendgrid_key
-SENDGRID_FROM_EMAIL=noreply@yourgolfcourse.com
-SENDGRID_FROM_NAME=Your Golf Course Name
-
-# Authentication
-JWT_SECRET=your_super_secure_jwt_secret_32_chars_min
-SESSION_SECRET=your_session_secret_32_chars_min
-
-# OAuth (Optional)
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-
-# Application
-NODE_ENV=production
-PORT=3000
-PRODUCTION_URL=https://your-domain.com
-
-# Admin Settings (Optional, can be set in Supabase admin_settings table)
-# These are default values that can be overridden in the database
-# COURSE_NAME=Your Golf Course Name
-# COURSE_ADDRESS=Your Course Address Line 1, Your Course Address Line 2, State ZIP
-# COURSE_PHONE=(XXX) XXX-XXXX
-# COURSE_EMAIL=info@yourgolfcourse.com
-# GREEN_FEE_9_HOLES=10.00
-# GREEN_FEE_ALL_DAY=15.00
-# MEMBERSHIP_SINGLE=250.00
-# MEMBERSHIP_FAMILY=325.00
-# MEMBERSHIP_STUDENT=100.00
-# MEMBERSHIP_ALUMNI=50.00
-# CART_RENTAL_FEE=15.00
-# MEMBER_BOOKING_ADVANCE_DAYS=60
-# COURSE_RATING=72.2
-# COURSE_SLOPE=113
-# COURSE_YARDAGE=6170
-# NUMBER_OF_HOLES=9
-# BOOKING_ADVANCE_DAYS=30
-# CANCELLATION_HOURS=24
-# MAX_PLAYERS_PER_BOOKING=4
-# TEE_TIME_INTERVAL=15
-# COURSE_OPEN_TIME=07:00
-# COURSE_CLOSE_TIME=19:00
-# FACEBOOK_URL=https://www.facebook.com/YourGolfCoursePage/
-```
-
-### Step 4: Configure Custom Domain
-1. In Railway dashboard, go to Settings
-2. Click "Custom Domain"
-3. Add your domain (e.g., yourgolfcourse.com)
-4. Update DNS records as instructed
-
-### Step 5: Deploy
-Railway will automatically deploy when you push to main branch.
 
 ## 🗄️ Database Setup (Supabase)
 

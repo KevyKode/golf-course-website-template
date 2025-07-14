@@ -36,11 +36,17 @@ A professional, modern golf course website template with full booking capabiliti
 - **Email:** SendGrid
 - **Hosting:** Railway (recommended)
 
-## 🚀 Quick Setup
+## 🚀 Quick Setup & Deployment
+
+This template consists of two main parts:
+1.  **Frontend:** HTML, CSS, and client-side JavaScript.
+2.  **Backend:** Node.js server with API routes and database interaction.
+
+For the template to work fully, **both the frontend and backend must be deployed.**
 
 ### 1. Environment Configuration
 
-Copy the `.env.template` file to `.env` and fill in your API keys:
+Copy the `.env.template` file to `.env` in your project's root directory and fill in your API keys:
 
 ```bash
 cp .env.template .env
@@ -97,18 +103,73 @@ npm run dev
 
 ### 5. Production Deployment
 
-#### Railway Deployment (Recommended)
-1. Connect your GitHub repository to Railway
-2. Set all environment variables in Railway dashboard
-3. Deploy automatically on push to main branch
+For full functionality, you need to deploy both your backend and frontend.
 
-#### Manual Deployment
+#### Option A: Deploying the Entire Project to Railway (Recommended for simplicity)
+This is the easiest way to deploy both your frontend and backend together. Railway will run your `server.js` which serves both your static files and handles API requests.
+
+1.  **Connect to Railway:**
+    *   Go to [railway.app](https://railway.app)
+    *   Sign up/login with GitHub.
+    *   Click "New Project" and select "Deploy from GitHub repo".
+    *   Choose your repository.
+2.  **Configure Environment Variables:**
+    *   In your Railway project dashboard, go to the "Variables" tab.
+    *   Add all the environment variables from your `.env` file (Supabase keys, Stripe keys, SendGrid keys, JWT_SECRET, SESSION_SECRET, etc.).
+3.  **Deploy:**
+    *   Railway will automatically detect your `start` script (`node server.js`) and deploy your application.
+    *   Your entire application (frontend and backend) will be accessible at the Railway-provided URL (e.g., `your-project-name.up.railway.app`).
+4.  **Update `API_BASE_URL` (Crucial!):**
+    *   Once your backend is deployed on Railway, you **MUST** update the `API_BASE_URL` in your frontend JavaScript (`assets/js/main.js`) to point to your deployed Railway backend URL.
+    *   Open `assets/js/main.js` and change:
+        ```javascript
+        const API_BASE_URL = window.location.origin.includes('localhost') 
+            ? 'http://localhost:3000/api' 
+            : `${window.location.origin}/api`;
+        ```
+        to:
+        ```javascript
+        const API_BASE_URL = "https://your-railway-backend-url.up.railway.app/api"; 
+        // Replace with your actual Railway URL
+        ```
+    *   Commit and push this change to your repository.
+
+#### Option B: Separate Deployments (Frontend on Cloudflare Pages, Backend on Railway/Other)
+This option gives you more control but requires managing two deployments.
+
+1.  **Deploy Backend (e.g., to Railway):**
+    *   Follow steps 1-3 from "Option A: Deploying the Entire Project to Railway" above.
+    *   Note down your deployed Railway backend URL (e.g., `https://your-backend-project.up.railway.app`).
+2.  **Deploy Frontend to Cloudflare Pages:**
+    *   Go to [pages.cloudflare.com](https://pages.cloudflare.com)
+    *   Connect your GitHub repository.
+    *   **Build Settings:**
+        *   **Build command:** `npm run build`
+        *   **Publish directory:** `dist`
+    *   Deploy your frontend.
+3.  **Update `API_BASE_URL` (Crucial!):**
+    *   Open `assets/js/main.js` and change:
+        ```javascript
+        const API_BASE_URL = window.location.origin.includes('localhost') 
+            ? 'http://localhost:3000/api' 
+            : `${window.location.origin}/api`;
+        ```
+        to:
+        ```javascript
+        const API_BASE_URL = "https://your-backend-project.up.railway.app/api"; 
+        // Replace with your actual deployed backend URL (e.g., from Railway)
+        ```
+    *   Commit and push this change to your repository.
+    *   Your Cloudflare Pages frontend will now correctly make API calls to your separately deployed backend.
+
+#### Manual Deployment (for advanced users)
 ```bash
-# Build the project
+# Build the project (creates the 'dist' directory)
 npm run build
 
-# Start production server
+# To run the production server locally (for testing before deployment)
 npm start
+# This will serve the 'dist' folder and run the API.
 ```
 
 ## 🎨 Customization Guide

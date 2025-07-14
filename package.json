@@ -1,14 +1,14 @@
 {
-  "name": "rooks-county-golf-course",
+  "name": "your-golf-course-template",
   "version": "1.0.0",
-  "description": "Professional golf course website with booking system for Rooks County Golf Course",
+  "description": "Professional golf course website template with booking system",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "build": "npm run build:css && npm run build:js",
-    "build:css": "postcss assets/css/main.css -o dist/css/main.min.css",
-    "build:js": "terser assets/js/main.js -o dist/js/main.min.js",
+    "build": "rm -rf dist && mkdir -p dist/assets/css dist/assets/js dist/assets/images && cp index.html dist/index.html && cp -r assets/images dist/assets/images && npm run build:css && npm run build:js",
+    "build:css": "postcss assets/css/main.css -o dist/assets/css/main.min.css",
+    "build:js": "terser assets/js/main.js -o dist/assets/js/main.min.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "migrate": "node scripts/migrate.js",
@@ -19,7 +19,7 @@
     "golf",
     "course",
     "booking",
-    "kansas",
+    "template",
     "tee-times",
     "membership"
   ],
@@ -75,11 +75,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/rooks-county-golf-course.git"
+    "url": "https://github.com/yourusername/your-golf-course-template.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/rooks-county-golf-course/issues"
+    "url": "https://github.com/yourusername/your-golf-course-template/issues"
   },
-  "homepage": "https://rookscountygolf.com",
-  "type": "commonjs"
+  "homepage": "https://yourgolfcourse.com"
 }
