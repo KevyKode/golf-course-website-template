@@ -6,9 +6,7 @@
   "scripts": {
   "start": "node server.js",
   "dev": "nodemon server.js",
-  "build": "rm -rf public && mkdir -p public/assets/css public/assets/js public/assets/images && cp index.html public/index.html && cp -r assets/images public/assets/images && npm run build:css && npm run build:js",
-  "build:css": "npx postcss assets/css/main.css -o public/assets/css/main.min.css",
-  "build:js": "npx terser assets/js/main.js -o public/assets/js/main.min.js",
+  "build": "mkdir -p public/assets/css public/assets/js public/assets/images && cp index.html public/index.html && cp -r assets/images/* public/assets/images/ && cp assets/css/* public/assets/css/ && cp assets/js/* public/assets/js/",
   "test": "jest",
   "test:watch": "jest --watch",
   "migrate": "node scripts/migrate.js",

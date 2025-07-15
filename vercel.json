@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "builds": [
     {
       "src": "server.js",
@@ -7,9 +8,12 @@
   ],
   "routes": [
     {
+      "src": "/assets/(.*)",
+      "dest": "/public/assets/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "/server.js"
     }
-  ],
-  "outputDirectory": "public"
+  ]
 }
