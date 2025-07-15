@@ -1,11 +1,6 @@
 # Your Golf Course Name - Website Template
 
 A professional, modern golf course website template with full booking capabilities, membership management, and payment processing. Designed for easy customization and deployment.
-
-## 🌐 Live Demo
-
-**Website URL:** [Your Live Demo URL Here - e.g., from Railway or Cloudflare Pages]
-
 ## 🏌️ Features
 
 ### Frontend Features
