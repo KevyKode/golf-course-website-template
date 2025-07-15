@@ -63,91 +63,72 @@ if (process.env.NODE_ENV !== 'production') {
 // =============================================================================
 // SECURITY MIDDLEWARE
 // =============================================================================
+// Modified helmet configuration to allow loading CSS
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:"],
+      },
+    },
+  })
+);
+app.use(cors());
 
-// Security headers
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://js.stripe.com", "https://maps.googleapis.com"],
-      imgSrc: ["'self'", "data:", "https:", "http:"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
-      connectSrc: ["'self'", "https://api.stripe.com", "https://*.supabase.co"],
-      frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"]
-    }
-  }
-}));
-
-// CORS configuration
-const corsOptions = {
-  origin: process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : ['http://localhost:3000'],
-  credentials: true,
-  optionsSuccessStatus: 200
-};
-app.use(cors(corsOptions));
+// =============================================================================
+// PERFORMANCE MIDDLEWARE
+// =============================================================================
+app.use(compression());
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again after 15 minutes'
 });
 app.use('/api/', limiter);
 
-// Compression
-app.use(compression());
-
 // =============================================================================
-// BODY PARSING MIDDLEWARE
+// PARSING MIDDLEWARE
 // =============================================================================
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // =============================================================================
 // SESSION CONFIGURATION
 // =============================================================================
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-super-secret-session-key',
+  secret: process.env.SESSION_SECRET || 'golf-course-secret',
   resave: false,
   saveUninitialized: false,
-  cookie: {
+  cookie: { 
     secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
 }));
 
-// =============================================================================
-// PASSPORT INITIALIZATION
-// =============================================================================
+// Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
 // =============================================================================
-// LOGGING MIDDLEWARE
+// STATIC FILES - MODIFIED FOR RAILWAY COMPATIBILITY
 // =============================================================================
-if (process.env.NODE_ENV === 'production') {
-  app.use(expressWinston.logger({
-    winstonInstance: logger,
-    meta: true,
-    msg: "HTTP {{req.method}} {{req.url}}",
-    expressFormat: true,
-    colorize: false,
-  }));
-} else {
-  app.use(morgan('dev'));
-}
-
-// =============================================================================
-// STATIC FILES
-// =============================================================================
+// Main assets directory
 app.use(express.static(path.join(__dirname, 'assets')));
+
+// Specific asset directories with explicit paths
 app.use('/css', express.static(path.join(__dirname, 'assets/css')));
 app.use('/js', express.static(path.join(__dirname, 'assets/js')));
 app.use('/images', express.static(path.join(__dirname, 'assets/images')));
+
+// Additional fallback for potential dist directory
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, 'dist')));
+}
 
 // =============================================================================
 // HEALTH CHECK ENDPOINT
@@ -187,75 +168,21 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/memberships', membershipRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/admin', authMiddleware.requireAuth, adminRoutes);
 app.use('/api/payments', paymentRoutes);
-app.use('/api/admin', authMiddleware.verifyToken, authMiddleware.requireAdmin, adminRoutes);
 
 // =============================================================================
-// MAIN WEBSITE ROUTES
+// SERVE FRONTEND (for SPA or static site)
 // =============================================================================
-
-// Serve main website
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Serve admin dashboard (if implemented)
-app.get('/admin', authMiddleware.requireAdmin, (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin/index.html'));
-});
-
-// Catch-all route for SPA (if using client-side routing)
+// Serve index.html for all non-API routes
 app.get('*', (req, res) => {
-  // Check if it's an API route that doesn't exist
-  if (req.path.startsWith('/api/')) {
-    return res.status(404).json({ error: 'API endpoint not found' });
-  }
-  
-  // For all other routes, serve the main page (SPA behavior)
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, 'assets', 'index.html'));
 });
 
 // =============================================================================
-// ERROR HANDLING MIDDLEWARE
+// ERROR HANDLING
 // =============================================================================
-
-// 404 handler for API routes
-app.use('/api/*', (req, res) => {
-  res.status(404).json({
-    error: 'API endpoint not found',
-    path: req.path,
-    method: req.method
-  });
-});
-
-// Global error handler
 app.use(errorHandler);
-
-// Express error logging
-if (process.env.NODE_ENV === 'production') {
-  app.use(expressWinston.errorLogger({
-    winstonInstance: logger
-  }));
-}
-
-// =============================================================================
-// GRACEFUL SHUTDOWN
-// =============================================================================
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM received, shutting down gracefully');
-  server.close(() => {
-    logger.info('Process terminated');
-    process.exit(0);
-  });
-});
-
-process.on('SIGINT', () => {
-  logger.info('SIGINT received, shutting down gracefully');
-  server.close(() => {
-    logger.info('Process terminated');
-    process.exit(0);
-  });
-});
 
 // =============================================================================
 // START SERVER
