@@ -1,0 +1,69 @@
+/* Calendar Styles */
+.calendar {
+  margin: 2rem 0;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background-color: #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.calendar-day {
+  background-color: var(--white);
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.calendar-day:hover {
+  background-color: var(--light-green);
+}
+
+.calendar-day.selected {
+  background-color: var(--accent-gold);
+  color: var(--primary-green);
+}
+
+.time-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.time-slot {
+  padding: 0.5rem;
+  background-color: var(--light-gray);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.time-slot:hover {
+  border-color: var(--accent-gold);
+}
+
+.time-slot.selected {
+  background-color: var(--accent-gold);
+  color: var(--primary-green);
+}
+
+.time-slot.unavailable {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+}
